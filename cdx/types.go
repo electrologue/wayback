@@ -28,9 +28,9 @@ type APIOptions struct {
 	Fields []string `url:"fl,comma,omitempty"`
 
 	// https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server#filtering
-	From   string `url:"from,omitempty"`
-	To     string `url:"to,omitempty"`
-	Filter string `url:"filter,omitempty"`
+	From    string   `url:"from,omitempty"`
+	To      string   `url:"to,omitempty"`
+	Filters []string `url:"filter,omitempty"`
 
 	// Collapse https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server#collapsing
 	Collapse string `url:"collapse,omitempty"`
