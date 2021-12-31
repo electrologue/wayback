@@ -1,7 +1,12 @@
 package cdx
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +14,37 @@ import (
 )
 
 func TestClient_Do(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		query := req.URL.Query()
+
+		params := map[string]string{
+			"limit":         "10",
+			"output":        "json",
+			"showDupeCount": "true",
+			"showResumeKey": "true",
+			"showSkipCount": "true",
+			"url":           "*.example.com",
+		}
+
+		for key, value := range params {
+			if query.Get(key) != value {
+				http.Error(rw, fmt.Sprintf("invalid %s: %s", key, query.Get(key)), http.StatusBadRequest)
+				return
+			}
+		}
+
+		data, err := os.ReadFile("./fixtures/do.json")
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, _ = rw.Write(bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n")))
+	}))
+
 	client := New()
+	client.baseURL = server.URL
+	client.httpClient = server.Client()
 
 	domain := "*.example.com"
 
@@ -45,21 +80,10 @@ func TestClient_Do(t *testing.T) {
 }
 
 func TestParseJSON(t *testing.T) {
-	data := `[["urlkey","timestamp","original","mimetype","statuscode","digest","length","dupecount"],
-["com,example)/", "20020120142510", "http://example.com:80/", "text/html", "200", "HT2DYGA5UKZCPBSFVCV3JOBXGW2G5UUA", "1792", "0"],
-["com,example)/", "20020328012821", "http://www.example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "481", "0"],
-["com,example)/", "20020524041628", "http://www.example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "481", "1"],
-["com,example)/", "20020528114741", "http://www.example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "481", "2"],
-["com,example)/", "20020529173502", "http://www.example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "482", "3"],
-["com,example)/", "20020604040806", "http://example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "477", "4"],
-["com,example)/", "20020604050644", "http://example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "476", "5"],
-["com,example)/", "20020722232628", "http://example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "451", "6"],
-["com,example)/", "20020801235910", "http://www.example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "459", "7"],
-["com,example)/", "20020803080544", "http://www.example.com:80/", "text/html", "200", "UY3I2DT2AMWAY6DECFCFYMT5ZOTFHUCH", "458", "8"],
-[],
-["com%2Cexample%29%2F+20020803080545"]]`
+	data, err := os.ReadFile("./fixtures/do.json")
+	require.NoError(t, err)
 
-	items, err := ParseJSON([]byte(data))
+	items, err := ParseJSON(data)
 	require.NoError(t, err)
 
 	expected := []Item{

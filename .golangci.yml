@@ -81,3 +81,5 @@ issues:
   exclude-use-default: false
   max-per-linter: 0
   max-same-issues: 0
+  exclude:
+    - 'G307: Deferring unsafe method "Close" on type "\*os\.File"'
