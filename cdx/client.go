@@ -19,33 +19,33 @@ import (
 )
 
 // BaseURL base URL of the API endpoint.
-const BaseURL = "http://web.archive.org/cdx/search/cdx"
+const BaseURL = "http://web.archive.org"
 
 // Client is an CDX API client.
 type Client struct {
 	httpClient *http.Client
-	baseURL    string
+	baseURL    *url.URL
 }
 
 // New creates a new Client.
 func New() *Client {
+	baseURL, _ := url.Parse(BaseURL)
+
 	return &Client{
 		httpClient: &http.Client{Timeout: 50 * time.Second},
-		baseURL:    BaseURL,
+		baseURL:    baseURL,
 	}
 }
 
 // Do sends request to the API endpoint.
 func (c Client) Do(ctx context.Context, host string, opts *APIOptions) ([]byte, error) {
-	endpoint, err := url.Parse(c.baseURL)
-	if err != nil {
-		return nil, err
-	}
+	endpoint := c.baseURL.JoinPath("cdx", "search", "cdx")
 
 	var values url.Values
 	if opts == nil {
 		values = endpoint.Query()
 	} else {
+		var err error
 		values, err = query.Values(opts)
 		if err != nil {
 			return nil, err

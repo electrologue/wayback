@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
@@ -49,7 +50,7 @@ func TestClient_Available(t *testing.T) {
 	}))
 
 	client := New()
-	client.baseURL = server.URL
+	client.baseURL, _ = url.Parse(server.URL)
 	client.httpClient = server.Client()
 
 	testCases := []struct {

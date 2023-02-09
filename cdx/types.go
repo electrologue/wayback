@@ -4,10 +4,10 @@ package cdx
 type MatchType string
 
 // https://github.com/internetarchive/wayback/tree/master/wayback-cdx-server#url-match-scope
-//  - `matchType=exact` (default if omitted) will return results matching exactly archive.org/about/
-//  - `matchType=prefix` will return results for all results under the path `archive.org/about/`
-//  - `matchType=host` will return results from host `archive.org`
-//  - `matchType=domain` will return results from host archive.org and all subhosts `*.archive.org`
+//   - `matchType=exact` (default if omitted) will return results matching exactly archive.org/about/
+//   - `matchType=prefix` will return results for all results under the path `archive.org/about/`
+//   - `matchType=host` will return results from host `archive.org`
+//   - `matchType=domain` will return results from host archive.org and all subhosts `*.archive.org`
 const (
 	MatchTypeExact  MatchType = "exact"
 	MatchTypePrefix MatchType = "prefix"

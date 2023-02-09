@@ -12,28 +12,27 @@ import (
 )
 
 // BaseURL base URL of the API endpoint.
-const BaseURL = "http://archive.org/wayback/available"
+const BaseURL = "http://archive.org/wayback/"
 
 // Client is an API JSON client.
 type Client struct {
 	httpClient *http.Client
-	baseURL    string
+	baseURL    *url.URL
 }
 
 // New creates a new Client.
 func New() *Client {
+	baseURL, _ := url.Parse(BaseURL)
+
 	return &Client{
 		httpClient: &http.Client{Timeout: 5 * time.Second},
-		baseURL:    BaseURL,
+		baseURL:    baseURL,
 	}
 }
 
 // Available test to see if a given url is archived and currently accessible in the Wayback Machine.
 func (c Client) Available(ctx context.Context, host, timestamp string) (*APIResponse, error) {
-	endpoint, err := url.Parse(c.baseURL)
-	if err != nil {
-		return nil, err
-	}
+	endpoint := c.baseURL.JoinPath("available")
 
 	query := endpoint.Query()
 	query.Set("url", host)
